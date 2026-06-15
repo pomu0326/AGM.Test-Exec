@@ -37,7 +37,7 @@ let currentExecutablePath () =
 let currentAssemblyPath () = Assembly.GetExecutingAssembly().Location
 
 // makeExecutableIfPossible: string -> unit
-let makeExecutableIfPossible path =
+let makeExecutableIfPossible (path: string) =
     if not (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
         try
             let chmod = ProcessStartInfo("chmod")
@@ -49,7 +49,7 @@ let makeExecutableIfPossible path =
         with _ -> ()
 
 // createBat: string -> unit
-let createBat path =
+let createBat (path: string) =
     let content =
         if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
             "@echo off" + Environment.NewLine + "echo Test-Exec BAT executed" + Environment.NewLine + "exit /b 0" + Environment.NewLine
@@ -59,14 +59,14 @@ let createBat path =
     makeExecutableIfPossible path
 
 // createDll: string -> unit
-let createDll path =
+let createDll (path: string) =
     let source = currentAssemblyPath()
     if String.IsNullOrWhiteSpace source || not (File.Exists source) then
         invalidOp "Current assembly could not be located."
     File.Copy(source, path, true)
 
 // createExe: string -> bool -> unit
-let createExe path signed =
+let createExe (path: string) signed =
     let source = currentExecutablePath()
     if String.IsNullOrWhiteSpace source || not (File.Exists source) then
         invalidOp "Current executable could not be located."
@@ -77,7 +77,7 @@ let createExe path signed =
         File.AppendAllText(path, signatureMarker, Encoding.UTF8)
 
 // createTestFile: string -> string -> unit
-let createTestFile fileType path =
+let createTestFile fileType (path: string) =
     ensureParentDirectory path
     match Path.GetExtension(path).ToLowerInvariant() with
     | ".bat" -> createBat path
@@ -87,7 +87,7 @@ let createTestFile fileType path =
     | extension -> invalidArg "Path" ($"Unsupported extension: {extension}")
 
 // executeFile: string -> ExecutionResult ref -> unit
-let executeFile path (result: ExecutionResult ref) =
+let executeFile (path: string) (result: ExecutionResult ref) =
     let extension = Path.GetExtension(path).ToLowerInvariant()
     let startInfo =
         match extension with
@@ -128,7 +128,7 @@ let handleRun (args: string array) =
                 with ex -> setFailure "FILE_CREATE_OR_EXECUTE_FAILED" ex.Message
 
 // internalWrite: string -> unit
-let internalWrite targetPath =
+let internalWrite (targetPath: string) =
     try
         let fullPath = Path.GetFullPath targetPath
         ensureParentDirectory fullPath
@@ -156,7 +156,7 @@ let handleWrite (args: string array) =
     | _ -> setFailure "INVALID_ARGUMENTS" "Usage: Test-Exec write -From <process-path> -Path <target-path>"
 
 [<EntryPoint>]
-// main: string array -> unit
+// main: string array -> int
 let main argv =
     match argv with
     | [| "__probe" |] -> Environment.ExitCode <- 0
@@ -167,3 +167,4 @@ let main argv =
         | "run" -> handleRun args
         | "write" -> handleWrite args
         | command -> setFailure "UNKNOWN_COMMAND" ($"Unknown command: {command}")
+    Environment.ExitCode
