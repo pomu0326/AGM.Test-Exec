@@ -4,9 +4,10 @@ open System.IO
 open System.Reflection
 open System.Runtime.InteropServices
 open System.Text
+open System.Text.Encodings.Web
 open System.Text.Json
 
-let jsonOptions = JsonSerializerOptions(WriteIndented = true)
+let jsonOptions = JsonSerializerOptions(WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping)
 
 type ExecutionResult =
     { ProcessId: int
