@@ -38,7 +38,7 @@ let currentAssemblyPath () = Assembly.GetExecutingAssembly().Location
 
 // makeExecutableIfPossible: string -> unit
 let makeExecutableIfPossible path =
-    if not RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+    if not (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) then
         try
             let chmod = ProcessStartInfo("chmod")
             chmod.ArgumentList.Add("+x")
